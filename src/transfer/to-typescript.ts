@@ -14,16 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import debug from 'debug';
-import {toEnum} from './bean/to-enum';
-import {toBeanClass} from './bean/to-vo';
-import {SourceFile} from 'ts-simple-ast';
-import {IntepretHandle} from '../handle';
-import {toInterface} from './provider/to-interface';
-import {toProxyFunc} from './provider/to-proxy-function';
-import {toWrapperClass} from './provider/to-wrapper-class';
+import debug from "debug";
+import { toEnum } from "./bean/to-enum";
+import { toBeanClass } from "./bean/to-vo";
+import { SourceFile } from "ts-simple-ast";
+import { IntepretHandle } from "../handle";
+import { toInterface } from "./provider/to-interface";
+import { toProxyFunc } from "./provider/to-proxy-function";
+import { toWrapperClass } from "./provider/to-wrapper-class";
 
-const log = debug('j2t:core:toTypewcript');
+const log = debug("j2t:core:toTypewcript");
 
 /**
  * java 类型转换为typescript type-ast
@@ -32,12 +32,12 @@ const log = debug('j2t:core:toTypewcript');
  * @returns {SourceFile}
  */
 export async function toTypescript(
-  intepretHandle: IntepretHandle,
+  intepretHandle: IntepretHandle
 ): Promise<SourceFile> {
-  log('调用转换方法 toTypescript::', intepretHandle.classPath);
-  let {sourceFile, astJava} = intepretHandle;
+  log("调用转换方法 toTypescript::", intepretHandle.classPath);
+  let { sourceFile, astJava } = intepretHandle;
 
-  let lastPointIndex = astJava.name.lastIndexOf('.') + 1;
+  let lastPointIndex = astJava.name.lastIndexOf(".") + 1;
   let typeInfo = {
     classPath: astJava.name,
     packagePath: astJava.name.substring(0, lastPointIndex),
@@ -46,12 +46,14 @@ export async function toTypescript(
     isAbstract: astJava.isAbstract,
     isInterface: astJava.isInterface,
     isClass: !astJava.isEnum && !astJava.isInterface,
-    isProvider: astJava.name.endsWith(String(intepretHandle.providerSuffix) || 'Provider'),
+    isProvider: astJava.name.endsWith(
+      String(intepretHandle.providerSuffix) || "Provider"
+    ),
   };
   intepretHandle.request.registerTypeInfo(typeInfo);
 
-  if(astJava.isAbstract  && !typeInfo.isProvider) {
-    console.warn('warning 抽象类型要注意了.classPath:',typeInfo.classPath);
+  if (astJava.isAbstract && !typeInfo.isProvider) {
+    console.warn("warning 抽象类型要注意了.classPath:", typeInfo.classPath);
   }
 
   try {
@@ -61,32 +63,32 @@ export async function toTypescript(
       if (typeInfo.isProvider) {
         sourceFile.addInterface(await toInterface(astJava, intepretHandle));
         sourceFile.addVariableStatement(
-          toWrapperClass(astJava, intepretHandle),
+          toWrapperClass(astJava, intepretHandle)
         );
         sourceFile.addImport({
-          moduleSpecifier: 'dubbo2.js',
-          defaultImport: '{TDubboCallResult,Dubbo}',
+          moduleSpecifier: "apache-dubbo-consumer",
+          defaultImport: "{TDubboCallResult,Dubbo}",
         });
         sourceFile.addFunction(
           toProxyFunc({
             typeName: intepretHandle.classPath.substring(
-              intepretHandle.classPath.lastIndexOf('.') + 1,
+              intepretHandle.classPath.lastIndexOf(".") + 1
             ),
             typePath: intepretHandle.classPath,
-          }),
+          })
         );
       } else {
         sourceFile.addClass(await toBeanClass(astJava, intepretHandle));
         sourceFile.addImport({
-          moduleSpecifier: 'js-to-java',
-          defaultImport: 'java',
+          moduleSpecifier: "js-to-java",
+          defaultImport: "java",
         });
       }
     }
   } catch (err) {
     console.error(
       `为${intepretHandle.classPath},${JSON.stringify(typeInfo)} 添加内容出错,`,
-      err,
+      err
     );
   }
 
