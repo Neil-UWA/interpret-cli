@@ -1,6 +1,6 @@
 {
   "name": "interpret-dubbo2js",
-  "version": "3.0.1",
+  "version": "3.0.2",
   "bin": {
     "interpret": "./lib/cli.js"
   },
@@ -22,8 +22,8 @@
     "node": ">=8.0.0"
   },
   "publishConfig": {
-       "registry": "http://nexus.goluckyvip-inc.com/repository/npm-repository/"
-     },
+    "registry": "http://nexus.goluckyvip-inc.com/repository/npm-repository/"
+  },
   "license": "Apache Licence 2.0",
   "dependencies": {
     "commander": "^2.12.2",
