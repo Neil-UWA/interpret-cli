@@ -63,11 +63,19 @@ export async function toTypescript(
       if (typeInfo.isProvider) {
         sourceFile.addInterface(await toInterface(astJava, intepretHandle));
         sourceFile.addVariableStatement(
-          toWrapperClass(astJava, intepretHandle)
+          await toWrapperClass(astJava, intepretHandle)
         );
         sourceFile.addImport({
           moduleSpecifier: "dubbo2.js",
           defaultImport: "{TDubboCallResult,Dubbo}",
+        });
+        sourceFile.addImport({
+          moduleSpecifier: "js-to-java",
+          defaultImport: "java",
+        });
+        sourceFile.addImport({
+          moduleSpecifier: "class-transformer",
+          defaultImport: "{plainToClass}",
         });
         sourceFile.addFunction(
           toProxyFunc({

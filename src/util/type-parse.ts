@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import debug from 'debug';
-import {IJFieldPropers, ITypePropers, ITypeSearch} from '../typings';
+import debug from "debug";
+import { IJFieldPropers, ITypePropers, ITypeSearch } from "../typings";
 
-const log = debug('j2t:core:ast-parse-util');
+const log = debug("j2t:core:ast-parse-util");
 
 /**
  * java 类型映射到TS中的值;;
@@ -28,35 +28,35 @@ const log = debug('j2t:core:ast-parse-util');
  *
  */
 const javaType2JSMap = {
-  'java.lang.String': 'string',
-  'java.lang.Object': 'Object',
-  'java.lang.Integer': 'number',
-  'java.lang.int': 'number',
-  'java.lang.short': 'number',
-  'java.lang.Short': 'number',
-  'java.lang.long': 'number',
-  'java.lang.Long': 'number',
-  'java.lang.double': 'number',
-  'java.lang.Double': 'number',
-  'java.lang.Float': 'number',
-  'java.lang.float': 'number',
+  "java.lang.String": "string",
+  "java.lang.Object": "Object",
+  "java.lang.Integer": "number",
+  "java.lang.int": "number",
+  "java.lang.short": "number",
+  "java.lang.Short": "number",
+  "java.lang.long": "number",
+  "java.lang.Long": "number",
+  "java.lang.double": "number",
+  "java.lang.Double": "number",
+  "java.lang.Float": "number",
+  "java.lang.float": "number",
 
-  'java.lang.Void': 'void',
-  'java.lang.Boolean': 'boolean',
-  'java.lang.boolean': 'boolean',
-  'java.lang.char': 'string',
-  'java.lang.chars': 'string',
-  'java.lang.Character': 'string',
-  'java.lang.byte': 'byte',
-  'java.lang.Byte': 'byte',
-  'java.util.Set': 'Array',
-  'java.util.LinkedHashSet': 'Array',
-  'java.util.List': 'Array',
-  'java.util.Collection': 'Array',
-  'java.util.Date': 'Date',
-  'java.util.Map': '{[name: ${nameType}]: ${value}}',
-  'java.util.HashMap': '{[name: ${nameType}]: ${value}}',
-  'java.math.BigDecimal': '{value:string}',
+  "java.lang.Void": "void",
+  "java.lang.Boolean": "boolean",
+  "java.lang.boolean": "boolean",
+  "java.lang.char": "string",
+  "java.lang.chars": "string",
+  "java.lang.Character": "string",
+  "java.lang.byte": "byte",
+  "java.lang.Byte": "byte",
+  "java.util.Set": "Array",
+  "java.util.LinkedHashSet": "Array",
+  "java.util.List": "Array",
+  "java.util.Collection": "Array",
+  "java.util.Date": "Date",
+  "java.util.Map": "{[name: ${nameType}]: ${value}}",
+  "java.util.HashMap": "{[name: ${nameType}]: ${value}}",
+  "java.math.BigDecimal": "{value:string}",
 };
 
 /**
@@ -70,12 +70,12 @@ const javaType2JSMap = {
  */
 export async function jType2Ts(
   typePropers: ITypePropers,
-  typeOptions: ITypeSearch,
+  typeOptions: ITypeSearch
 ): Promise<string> {
-  let result = '';
+  let result = "";
   //是否是类泛型的定义
   if (!typePropers) {
-    throw new Error('typePropers为空');
+    throw new Error("typePropers为空");
   }
 
   if (typeOptions.isTypeParam(typePropers.name)) {
@@ -83,27 +83,27 @@ export async function jType2Ts(
   } else if (typePropers.isArray) {
     let subType = await jType2Ts(typePropers.elementType, typeOptions);
     return `${subType}[]`;
-  }else if(typePropers.name==='java.lang.Enum') {
+  } else if (typePropers.name === "java.lang.Enum") {
     //枚举类型处理
-    let enumClassPath =typePropers.typeArgs[0].type.name;
-    return classPath2TypeName(enumClassPath, typeOptions)
+    let enumClassPath = typePropers.typeArgs[0].type.name;
+    return classPath2TypeName(enumClassPath, typeOptions);
   } else if (
-    typePropers.name === 'java.util.Map' &&
+    typePropers.name === "java.util.Map" &&
     typePropers.typeArgs.length === 0
   ) {
-    return 'any';//直接返回any
+    return "any"; //直接返回any
   } else if (typePropers.typeArgs && typePropers.typeArgs.length > 0) {
     //泛型处理
     let type = await classPath2TypeName(typePropers.name, typeOptions);
-    if (typePropers.name === 'java.util.Map') {
-      let nameType = 'any';
+    if (typePropers.name === "java.util.Map") {
+      let nameType = "any";
       if (typePropers.typeArgs[0]) {
         if (!typePropers.typeArgs[0].isWildcard) {
           nameType = await jType2Ts(typePropers.typeArgs[0].type, typeOptions);
         }
       }
 
-      let valueType = 'any';
+      let valueType = "any";
       if (typePropers.typeArgs[1]) {
         if (!typePropers.typeArgs[1].isWildcard) {
           valueType = await jType2Ts(typePropers.typeArgs[1].type, typeOptions);
@@ -111,10 +111,10 @@ export async function jType2Ts(
       }
 
       result = type
-        .replace('${nameType}', nameType)
-        .replace('${value}', valueType);
-    } else if(type === 'any') {
-      return 'any';
+        .replace("${nameType}", nameType)
+        .replace("${value}", valueType);
+    } else if (type === "any") {
+      return "any";
     } else {
       let subTypes = [];
       for (var i = 0, iLen = typePropers.typeArgs.length; i < iLen; i++) {
@@ -123,16 +123,16 @@ export async function jType2Ts(
         if (!subItem.isWildcard) {
           subTypes.push(await jType2Ts(subItem.type, typeOptions));
         } else {
-          subTypes.push('any');
+          subTypes.push("any");
         }
       }
-      result = `${type}<${subTypes.join(',')}>`;
+      result = `${type}<${subTypes.join(",")}>`;
     }
   } else {
     result = await classPath2TypeName(typePropers.name, typeOptions);
   }
 
-  log('获取变量的类型:', typePropers, '==>', result);
+  log("获取变量的类型:", typePropers, "==>", result);
   return result;
 }
 
@@ -151,17 +151,17 @@ export async function jType2Ts(
  */
 export async function classPath2TypeName(
   classPath: string,
-  typeOptions: ITypeSearch,
+  typeOptions: ITypeSearch
 ): Promise<string> {
   let result = javaType2JSMap[classPath];
   if (result) {
     return result;
   } else if (typeOptions.hasAst(classPath)) {
     let denpendItem = await typeOptions.addDenpend(classPath);
-    if(denpendItem){
+    if (denpendItem) {
       return denpendItem.importName;
-    }else{
-      console.warn('warning: not find class Type for :'+classPath);
+    } else {
+      console.warn("warning: not find class Type for :" + classPath);
       return "any";
     }
   } else {

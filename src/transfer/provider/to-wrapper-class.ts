@@ -17,36 +17,37 @@
 import {
   VariableDeclarationType,
   VariableStatementStructure,
-} from 'ts-simple-ast';
-import debug from 'debug';
-import {IntepretHandle} from '../../handle';
-import {IJClass} from '../../typings';
+} from "ts-simple-ast";
+import debug from "debug";
+import { IntepretHandle } from "../../handle";
+import { IJClass } from "../../typings";
+import { jType2Ts } from "../../util/type-parse";
 
-const log = debug('j2t:core:toWrapperClass');
+const log = debug("j2t:core:toWrapperClass");
 
-export function toWrapperClass(
+export async function toWrapperClass(
   typeDef: IJClass,
-  intepretHandle: IntepretHandle,
-): VariableStatementStructure {
-  log('调用转换方法 toWrapperClass::');
+  intepretHandle: IntepretHandle
+): Promise<VariableStatementStructure> {
+  log("调用转换方法 toWrapperClass::");
   if (typeDef.isEnum) {
     //枚举类型的
-    throw new Error('调用错误,枚举类型不应该有这个调用');
+    throw new Error("调用错误,枚举类型不应该有这个调用");
   } else {
-    return toTypeWrapper(typeDef, intepretHandle);
+    return await toTypeWrapper(typeDef, intepretHandle);
   }
 }
 
-function toTypeWrapper(
+async function toTypeWrapper(
   typeDef: IJClass,
-  intepretHandle: IntepretHandle,
-): VariableStatementStructure {
+  intepretHandle: IntepretHandle
+): Promise<VariableStatementStructure> {
   let typeName = intepretHandle.getTypeInfo(typeDef.name).className;
   let _methods = [],
     bodys = [];
   for (let methodName in typeDef.methods) {
     if (typeDef.methods[methodName].isOverride) {
-      methodName = methodName.substring(0, methodName.lastIndexOf('@override'));
+      methodName = methodName.substring(0, methodName.lastIndexOf("@override"));
     }
 
     if (_methods.indexOf(methodName) !== -1) {
@@ -55,7 +56,34 @@ function toTypeWrapper(
     } else {
       _methods.push(methodName);
     }
-    bodys.push(`${methodName}:argumentMap`);
+    const params = typeDef.methods[methodName].params;
+    const input = [];
+
+    const paramsMap = [];
+    for (let idx in params) {
+      const ret = await jType2Ts(params[idx], intepretHandle);
+      paramsMap.push({
+        javaName: params[idx].name,
+        java: params[idx],
+        js: ret,
+      });
+      input.push(`arg${idx}: ${ret}`);
+    }
+
+    const output = paramsMap
+      .map((p, idx) => {
+        const arg = `arg${idx}`;
+        return p.javaName.startsWith("java.lang")
+          ? `${p.javaName.replace(".lang", "")}(${arg})`
+          : `${arg} instanceof ${p.js} ? plainToClass(${p.js}, ${arg}) : ${arg}`;
+      })
+      .join(",");
+    const tpl = `
+      function(${input.join(",")}) {
+        return [${output}]
+      }
+    `;
+    bodys.push(`${methodName}: ${tpl}`);
   }
 
   return {
@@ -63,8 +91,8 @@ function toTypeWrapper(
     declarationType: VariableDeclarationType.Const,
     declarations: [
       {
-        name: typeName + 'Wrapper',
-        initializer: `{${bodys.join(',')}}`,
+        name: typeName + "Wrapper",
+        initializer: `{${bodys.join(",")}}`,
       },
     ],
   };
