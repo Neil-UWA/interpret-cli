@@ -75,7 +75,7 @@ async function toTypeWrapper(
         const arg = `arg${idx}`;
         return p.javaName.startsWith("java.lang")
           ? `${p.javaName.replace(".lang", "")}(${arg})`
-          : `${arg} instanceof ${p.js} ? plainToClass(${p.js}, ${arg}) : ${arg}`;
+          : `${arg} instanceof ${p.js} ?  ${arg} : plainToClass(${p.js}, ${arg}) `;
       })
       .join(",");
     const tpl = `
