@@ -67,12 +67,9 @@ export async function toTypescript(
         );
         sourceFile.addImport({
           moduleSpecifier: "dubbo2.js",
-          defaultImport: "{TDubboCallResult,Dubbo}",
+          defaultImport: "{TDubboCallResult,Dubbo,java}",
         });
-        sourceFile.addImport({
-          moduleSpecifier: "js-to-java",
-          defaultImport: "java",
-        });
+
         sourceFile.addImport({
           moduleSpecifier: "class-transformer",
           defaultImport: "{plainToClass}",
