@@ -4,6 +4,10 @@
   "bin": {
     "interpret": "./lib/cli.js"
   },
+  "scripts": {
+    "build": "tsc",
+    "prepublish": "npm run build"
+  },
   "description": "apache dubbo & dubbo-js interpret java-jar file to typescript files",
   "repository": {
     "type": "git",
