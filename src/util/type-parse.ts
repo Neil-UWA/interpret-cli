@@ -34,13 +34,14 @@ const javaType2JSMap = {
   "java.lang.int": "number",
   "java.lang.short": "number",
   "java.lang.Short": "number",
-  "java.lang.long": "number",
-  "java.lang.Long": "number",
+  "java.lang.long": "bigint",
+  "java.lang.Long": "bigint",
   "java.lang.double": "number",
   "java.lang.Double": "number",
   "java.lang.Float": "number",
   "java.lang.float": "number",
 
+  Long: "bigint",
   "java.lang.Void": "void",
   "java.lang.Boolean": "boolean",
   "java.lang.boolean": "boolean",
@@ -77,7 +78,6 @@ export async function jType2Ts(
   if (!typePropers) {
     throw new Error("typePropers为空");
   }
-
   if (typeOptions.isTypeParam(typePropers.name)) {
     return typePropers.name;
   } else if (typePropers.isArray) {

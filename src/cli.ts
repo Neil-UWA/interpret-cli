@@ -74,15 +74,23 @@ async function formatSourceDir(srcDir): Promise<void> {
         if (item.path.endsWith(".ts")) {
           try {
             let fileContent = await readFile(item.path);
+
             await writeFile(
               item.path,
-              prettier.format(`//@ts-nocheck\n` + fileContent.toString(), {
-                parser: "typescript",
-                singleQuote: true,
-                bracketSpacing: false,
-                trailingComma: "all",
-                semi: true,
-              })
+              prettier.format(
+                `${
+                  fileContent.toString().includes("//@ts-nocheck")
+                    ? ""
+                    : "//@ts-nocheck\n"
+                }` + fileContent.toString(),
+                {
+                  parser: "typescript",
+                  singleQuote: true,
+                  bracketSpacing: false,
+                  trailingComma: "all",
+                  semi: false,
+                }
+              )
             );
             log(`Format the source code successfully:${item.path}`);
           } catch (err) {

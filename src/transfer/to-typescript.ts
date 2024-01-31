@@ -85,8 +85,8 @@ export async function toTypescript(
       } else {
         sourceFile.addClass(await toBeanClass(astJava, intepretHandle));
         sourceFile.addImport({
-          moduleSpecifier: "js-to-java",
-          defaultImport: "java",
+          moduleSpecifier: "dubbo2.js",
+          defaultImport: "{java}",
         });
       }
     }
