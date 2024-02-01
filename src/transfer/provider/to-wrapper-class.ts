@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import debug from "debug";
 import {
   VariableDeclarationType,
   VariableStatementStructure,
 } from "ts-simple-ast";
-import debug from "debug";
 import { IntepretHandle } from "../../handle";
 import { IJClass } from "../../typings";
 import { jType2Ts } from "../../util/type-parse";
@@ -80,7 +80,7 @@ async function toTypeWrapper(
       .join(",");
     const tpl = `
       function(${input.join(",")}) {
-        return [${output}]
+        return argumentMap(...[${output}])
       }
     `;
     bodys.push(`${methodName}: ${tpl}`);
